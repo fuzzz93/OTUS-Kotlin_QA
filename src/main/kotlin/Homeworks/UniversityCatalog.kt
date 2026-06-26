@@ -58,7 +58,6 @@ fun main() = runBlocking {
         println("Введите часть названия университета для поиска:")
         val search = readlnOrNull()?.trim() ?: ""
         if (search.isNotEmpty()) {
-            // Filters + Pattern вместо KMongo-синтаксиса (University::name regex ...)
             val pattern = Pattern.compile(".*${Pattern.quote(search)}.*", Pattern.CASE_INSENSITIVE)
             val results = collection.find(Filters.regex("name", pattern)).toList()
             println("Найдено по запросу '$search': ${results.size}")
