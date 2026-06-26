@@ -1,6 +1,8 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
-    kotlin("jvm") version "1.9.22"
-    kotlin("plugin.serialization") version "1.9.22"
+    kotlin("jvm") version "2.4.0"
+    kotlin("plugin.serialization") version "2.4.0"
     application
 }
 
@@ -9,25 +11,30 @@ repositories {
 }
 
 dependencies {
-    implementation("io.ktor:ktor-client-core:2.3.4")
-    implementation("io.ktor:ktor-client-cio:2.3.4")
-    implementation("io.ktor:ktor-client-content-negotiation:2.3.4")
-    implementation("io.ktor:ktor-serialization-kotlinx-json:2.3.4")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.0")
-    implementation("org.slf4j:slf4j-simple:2.0.9")
-    implementation("org.litote.kmongo:kmongo:4.11.0")
+    // Ktor 3.x — HTTP-клиент
+    implementation("io.ktor:ktor-client-core:3.5.0")
+    implementation("io.ktor:ktor-client-cio:3.5.0")
+    implementation("io.ktor:ktor-client-content-negotiation:3.5.0")
+    implementation("io.ktor:ktor-serialization-kotlinx-json:3.5.0")
+
+    // kotlinx
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0") // сверь актуальную
+
+    // Логирование
+    implementation("org.slf4j:slf4j-simple:2.0.18")
+
+    // Официальный Kotlin-драйвер MongoDB
+    implementation("org.mongodb:mongodb-driver-kotlin-coroutine:5.8.0")
 }
 
-java {
-    sourceCompatibility = JavaVersion.VERSION_22
-    targetCompatibility = JavaVersion.VERSION_22
-}
-
-tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-    kotlinOptions.jvmTarget = "22"
+kotlin {
+    jvmToolchain(22)
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_22)
+    }
 }
 
 application {
     mainClass.set("Homeworks.HomeworkFiveKt")
 }
-
