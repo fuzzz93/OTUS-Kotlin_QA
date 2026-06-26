@@ -1,17 +1,19 @@
 package Homeworks
 
+import com.mongodb.client.model.Filters
+import com.mongodb.kotlin.client.coroutine.MongoClient
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.cio.*
-import io.ktor.client.request.*
 import io.ktor.client.plugins.contentnegotiation.*
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
+import io.ktor.client.request.*
 import io.ktor.serialization.kotlinx.json.*
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.SerialName
-import org.litote.kmongo.*
-import org.litote.kmongo.getCollection
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
+import java.util.regex.Pattern
 
 @Serializable
 data class University(
@@ -25,41 +27,45 @@ data class University(
 
 fun main() = runBlocking {
     println("Введите страну для поиска университетов:")
-    val country = readLine()
+    val country = readlnOrNull()
 
     val client = HttpClient(CIO) {
         install(ContentNegotiation) {
             json(Json { ignoreUnknownKeys = true })
         }
     }
-    val url = "http://universities.hipolabs.com/search?country=${country?.replace(" ", "%20")}"
+
+    // Новый драйвер: клиент создаётся через MongoClient.create(...)
+    val mongoClient = MongoClient.create("mongodb://localhost:27017")
+
     try {
+        val url = "http://universities.hipolabs.com/search?country=${country?.replace(" ", "%20")}"
         val universities: List<University> = client.get(url).body()
+
         // --- Сохраняем в MongoDB ---
-        val mongoClient = KMongo.createClient()
         val database = mongoClient.getDatabase("test")
         val collection = database.getCollection<University>("universities")
         collection.drop() // очищаем коллекцию перед вставкой
         collection.insertMany(universities)
         println("Сохранено в MongoDB: ${collection.countDocuments()} университетов")
+
         // --- Поиск по названию ---
         println("Введите часть названия университета для поиска:")
-        val search = readLine()?.trim() ?: ""
+        val search = readlnOrNull()?.trim() ?: ""
         if (search.isNotEmpty()) {
-            val results =
-                collection.find(University::name regex ".*${search}.*".toRegex(RegexOption.IGNORE_CASE)).toList()
-            println("Найдено по запросу '${search}': ${results.size}")
+            val pattern = Pattern.compile(".*${Pattern.quote(search)}.*", Pattern.CASE_INSENSITIVE)
+            val results = collection.find(Filters.regex("name", pattern)).toList()
+            println("Найдено по запросу '$search': ${results.size}")
             results.forEachIndexed { i, uni ->
                 println("${i + 1}. ${uni.name} (${uni.country}, ${uni.stateProvince}) — сайт: ${uni.web_pages.firstOrNull() ?: "нет сайта"}")
             }
         } else {
             println("Пустой поисковый запрос, поиск не выполнен.")
         }
-        mongoClient.close()
     } catch (e: Exception) {
-        println("Ошибка при запросе или обработке данных: ${e}")
+        println("Ошибка при запросе или обработке данных: $e")
     } finally {
         client.close()
+        mongoClient.close()
     }
 }
-
