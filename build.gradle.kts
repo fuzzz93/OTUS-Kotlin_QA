@@ -19,8 +19,7 @@ dependencies {
 
     // kotlinx
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0") // сверь актуальную
-
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0") //
     // Логирование
     implementation("org.slf4j:slf4j-simple:2.0.18")
 
@@ -36,5 +35,9 @@ kotlin {
 }
 
 application {
-    mainClass.set("Homeworks.HomeworkFiveKt")
+    mainClass.set("Homeworks.UniversityCatalogKt")
+}
+
+tasks.named<JavaExec>("run") {
+    standardInput = System.`in`
 }

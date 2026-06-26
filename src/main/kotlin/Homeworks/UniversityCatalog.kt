@@ -42,6 +42,11 @@ fun main() = runBlocking {
         val url = "http://universities.hipolabs.com/search?country=${country?.replace(" ", "%20")}"
         val universities: List<University> = client.get(url).body()
 
+        if (universities.isEmpty()) {
+            println("По стране '$country' ничего не найдено. Проверьте название (например: Russian Federation).")
+            return@runBlocking
+        }
+
         // --- Сохраняем в MongoDB ---
         val database = mongoClient.getDatabase("test")
         val collection = database.getCollection<University>("universities")
