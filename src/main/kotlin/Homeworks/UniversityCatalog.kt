@@ -42,6 +42,11 @@ fun main() = runBlocking {
         val url = "http://universities.hipolabs.com/search?country=${country?.replace(" ", "%20")}"
         val universities: List<University> = client.get(url).body()
 
+        if (universities.isEmpty()) {
+            println("По стране '$country' ничего не найдено. Проверьте название (например: Russian Federation).")
+            return@runBlocking
+        }
+
         // --- Сохраняем в MongoDB ---
         val database = mongoClient.getDatabase("test")
         val collection = database.getCollection<University>("universities")
@@ -53,6 +58,7 @@ fun main() = runBlocking {
         println("Введите часть названия университета для поиска:")
         val search = readlnOrNull()?.trim() ?: ""
         if (search.isNotEmpty()) {
+            // Filters + Pattern вместо KMongo-синтаксиса (University::name regex ...)
             val pattern = Pattern.compile(".*${Pattern.quote(search)}.*", Pattern.CASE_INSENSITIVE)
             val results = collection.find(Filters.regex("name", pattern)).toList()
             println("Найдено по запросу '$search': ${results.size}")
