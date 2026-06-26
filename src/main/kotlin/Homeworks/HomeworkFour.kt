@@ -6,6 +6,3 @@ fun main() {
     val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
     println("Текущее время: ${current.format(formatter)}")
 }
-
-
-тестовый коммит
